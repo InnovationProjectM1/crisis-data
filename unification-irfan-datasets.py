@@ -5,38 +5,61 @@ Preprocessing of the dataset from Irfan Ullah
 """
 
 # Import libraries
-from nltk.corpus import stopwords
-import pandas as pd
-import re
-from nltk.stem import WordNetLemmatizer
+# from nltk.corpus import stopwords
+# import pandas as pd
+# import re
+# from nltk.stem import WordNetLemmatizer
 
-# Initialize NLTK resources
-stop_words = set(stopwords.words('english'))
-lemmatizer = WordNetLemmatizer()
+import requests
 
-# Path to the dataset
-file = './Irfan-Ullah/dataset.csv'
+base_url = "https://api.crisis.maxlamenace.duckdns.org/"
 
-# Load the data
-data = pd.read_csv(file)
-print("\n\nData from the csv\n", data['tweet-text'].head())
+def get_tweets():
+    """
+    Fetch tweets from the Crisis API.
+    """
+    cpt = 0
+    response = requests.get(base_url + "tweets")
+    if response.status_code == 200:
+        for tweet in response.json():
+            print(tweet['tweet_text'])
+            print('\n-----------------------\n')
+            cpt += 1
+        print(f"Total tweets fetched: {cpt}")
+        return response.json()
+    else:
+        print("Error fetching tweets:", response.status_code)
+        return []
 
-def clean_text(text):
-    # Remove URLs, usernames, non-ascii characters, punctuation, stopwords, word that get a lenght <2 and convert to lowercase, lemmatize
-    text = re.sub(r'http\S+|www\S+|https\S+', '', text)
-    text = re.sub(r'@\w+', '', text) # For usernames
-    text = text.encode('ascii', 'ignore').decode('ascii') 
-    text = text.lower() 
-    text = re.sub(r'[^\w\s]', '', text) # For punctuation
-    words = [word for word in text.split() if word not in stop_words and len(word) > 2]
-    lemmatized = [lemmatizer.lemmatize(word) for word in words]
-    final = [word.strip() for word in lemmatized if word.strip()]      
-    return ' '.join(final)
+get_tweets()
 
-# Start of the data preprocessing
-data = data.drop_duplicates()
-data['tweet-text'] = data['tweet-text'].apply(clean_text)
-print("\nData after the actual clean\n", data['tweet-text'].head())
+# # Initialize NLTK resources
+# stop_words = set(stopwords.words('english'))
+# lemmatizer = WordNetLemmatizer()
 
-# Print unique text-class values
-print("\nUnique text-class values:\n", data['tweet-class'].unique())
+# # Path to the dataset
+# file = './Irfan-Ullah/dataset.csv'
+
+# # Load the data
+# data = pd.read_csv(file)
+# print("\n\nData from the csv\n", data['tweet-text'].head())
+
+# def clean_text(text):
+#     # Remove URLs, usernames, non-ascii characters, punctuation, stopwords, word that get a lenght <2 and convert to lowercase, lemmatize
+#     text = re.sub(r'http\S+|www\S+|https\S+', '', text)
+#     text = re.sub(r'@\w+', '', text) # For usernames
+#     text = text.encode('ascii', 'ignore').decode('ascii') 
+#     text = text.lower() 
+#     text = re.sub(r'[^\w\s]', '', text) # For punctuation
+#     words = [word for word in text.split() if word not in stop_words and len(word) > 2]
+#     lemmatized = [lemmatizer.lemmatize(word) for word in words]
+#     final = [word.strip() for word in lemmatized if word.strip()]      
+#     return ' '.join(final)
+
+# # Start of the data preprocessing
+# data = data.drop_duplicates()
+# data['tweet-text'] = data['tweet-text'].apply(clean_text)
+# print("\nData after the actual clean\n", data['tweet-text'].head())
+
+# # Print unique text-class values
+# print("\nUnique text-class values:\n", data['tweet-class'].unique())
