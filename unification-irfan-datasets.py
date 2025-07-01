@@ -11,6 +11,7 @@ Preprocessing of the dataset from Irfan Ullah
 # from nltk.stem import WordNetLemmatizer
 
 import requests
+import json
 
 base_url = "https://api.crisis.maxlamenace.duckdns.org/"
 
@@ -22,7 +23,7 @@ def get_tweets():
     response = requests.get(base_url + "tweets")
     if response.status_code == 200:
         for tweet in response.json():
-            print(tweet['tweet_text'])
+            print(tweet['classifier'])
             print('\n-----------------------\n')
             cpt += 1
         print(f"Total tweets fetched: {cpt}")
@@ -31,7 +32,42 @@ def get_tweets():
         print("Error fetching tweets:", response.status_code)
         return []
 
-get_tweets()
+tweet_data = [
+        {
+            "tweet_id": "264700000000000000",
+            "classified_group": "Ressource",
+            "classified_sub_group": "Shelter",
+            "difficulty": "1"
+        },
+        {
+            "tweet_id": "262897000000000000",
+            "classified_group": "Needs",
+            "classified_sub_group": "Humanitarian Aid",
+            "difficulty": "5"
+        }
+    ]
+
+def post_multiple_classifiers(classified_tweets):
+    """
+    Post classified tweets to the Crisis API.
+    """
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(base_url + "classifiers/multiple", headers=headers, data=json.dumps(classified_tweets))
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.HTTPError as e:
+        raise Exception(f"HTTP error occurred: {e}\nResponse: {response.text}")
+    except Exception as e:
+        raise Exception(f"An error occurred: {e}")
+    
+
+#get_tweets()
+print(post_multiple_classifiers(tweet_data))
 
 # # Initialize NLTK resources
 # stop_words = set(stopwords.words('english'))
